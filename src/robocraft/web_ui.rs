@@ -9,10 +9,10 @@ const FAVICON: &[u8] = include_bytes!("../../assets/favicon.jpg");
 pub async fn index() -> HttpResponse { HttpResponse::Ok().insert_header(("Content-Type", "text/html; charset=utf-8")).body(INDEX) }
 
 #[get("/app.js")]
-pub async fn app_js() -> HttpResponse { HttpResponse::Ok().insert_header(("Content-Type", "application/javascript; charset=utf-8")).body(APP_JS) }
+pub async fn app_js() -> HttpResponse { HttpResponse::Ok().insert_header(("Content-Type", "application/javascript; charset=utf-8")).insert_header(("Cache-Control", "no-store")).body(APP_JS) }
 
 #[get("/favicon.ico")]
 pub async fn favicon() -> HttpResponse { HttpResponse::Ok().insert_header(("Content-Type", "image/jpeg")).body(FAVICON) }
 
 #[get("/i18n.js")]
-pub async fn i18n_js() -> HttpResponse { HttpResponse::Ok().insert_header(("Content-Type", "application/javascript; charset=utf-8")).body(I18N_JS) }
+pub async fn i18n_js() -> HttpResponse { HttpResponse::Ok().insert_header(("Content-Type", "application/javascript; charset=utf-8")).insert_header(("Cache-Control", "no-store")).body(I18N_JS) }

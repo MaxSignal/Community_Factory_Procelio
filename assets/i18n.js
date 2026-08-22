@@ -48,17 +48,51 @@
     applyStatic(); document.dispatchEvent(new CustomEvent('languagechange', {detail:{lang}}));
   };
   function text(id,key){ const el=document.getElementById(id); if(el) el.textContent=t(key); }
+  function renderHowToUpload(){
+    const title=document.getElementById('howToUploadTitle');
+    if(title) title.textContent=t('howUploadTitle');
+    const list=document.getElementById('howToUploadList');
+    if(!list) return;
+    list.innerHTML='';
+    const steps=t('uploadSteps');
+    steps.forEach((s,i)=>{
+      const li=document.createElement('li');
+      li.innerHTML=`<strong>${s}</strong>`;
+      if(i===3){
+        const help=document.createElement('div'); help.className='help'; help.innerHTML=t('uploadStep4Help');
+        const path=document.createElement('code'); path.textContent=t('templatePath');
+        li.append(help,path);
+      } else if(i===4){
+        const opt=document.createElement('span'); opt.className='help'; opt.textContent=` (${t('optional')})`; li.append(opt);
+      }
+      list.appendChild(li);
+    });
+  }
+  function renderHowToImport(){
+    const title=document.getElementById('howToImportTitle');
+    if(title) title.textContent=t('howImportTitle');
+    const list=document.getElementById('howToImportList');
+    if(!list) return;
+    list.innerHTML='';
+    t('importSteps').forEach((s,i)=>{
+      const li=document.createElement('li');
+      li.innerHTML=`<strong>${s}</strong>`;
+      if(i===1){ const path=document.createElement('code'); path.textContent=t('templatePath'); const help=document.createElement('div'); help.className='help'; help.appendChild(path); li.appendChild(help); }
+      list.appendChild(li);
+    });
+  }
   function applyStatic(){
     text('howToUploadBtn','howUpload'); text('howToImportBtn','howImport'); text('uploadBtn','upload'); text('loginBtn','login'); text('registerBtn','register'); text('logoutBtn','logout'); text('languageBtn','language');
     text('sortLabel','sortBy'); text('sortUploadDate','uploadDate'); text('sortUploader','uploader'); text('sortRobotName','robotName');
     text('howToUploadTitle','howUploadTitle'); text('howToImportTitle','howImportTitle'); text('authUsernameLabel','username'); text('authPasswordLabel','password'); text('uploadModalTitle','uploadBot');
     text('robotNameLabel','robotName'); text('descriptionLabel','description'); text('botFileLabel','botFile'); text('thumbnailLabel','thumbnail'); text('previewImagesLabel','previewImages');
     text('cancelUploadBtn','cancel'); text('cropHelp','cropHelp'); text('thumbPreviewLabel','thumbPreview'); text('detailTitle','botDetails'); text('previewGalleryTitle','previewGallery'); text('importInfoTitle','importInfo'); text('copyImportInfo','copy'); text('importInfoHelp','saveImport');
-    const upList=document.getElementById('howUploadList'); if(upList){upList.innerHTML=''; t('uploadSteps').forEach((s,i)=>{const li=document.createElement('li'); let extra=''; if(i===3){extra=`<div class="help">${t('uploadStep4Help')}</div><code>${t('templatePath')}</code>`;} else if(i===4){extra=` <span class="help">(${t('optional')})</span>`;} li.innerHTML=`<strong>${s}</strong>${extra}`; upList.appendChild(li);});}
-    const impList=document.getElementById('howToImportList'); if(impList){impList.innerHTML=''; t('importSteps').forEach((s,i)=>{const li=document.createElement('li');li.innerHTML=`<strong>${s}</strong>${i===1?`<div class="help"><code>C:\Users\%user%\AppData\LocalLow\Ironshell Studios\Procelio\templates</code></div>`:''}`;impList.appendChild(li)});}
+    renderHowToUpload(); renderHowToImport();
     const opt=document.getElementById('previewOptional'); if(opt) opt.textContent=t('optional');
   }
   window.refreshI18n = applyStatic;
-  function bootI18n(){ applyStatic(); const btn=document.getElementById('languageBtn'); if(btn && !btn.dataset.i18nBound){ btn.dataset.i18nBound='1'; btn.addEventListener('click',()=>window.setLanguage(window.getLanguage()==='en'?'ja':'en')); } }
+  window.renderHowToI18n = () => { renderHowToUpload(); renderHowToImport(); };
+  window.refreshI18n = applyStatic;
+  function bootI18n(){ applyStatic(); const btn=document.getElementById('languageBtn'); if(btn && !btn.dataset.i18nBound){ btn.dataset.i18nBound='1'; btn.addEventListener('click',()=>window.setLanguage(window.getLanguage()==='en'?'ja':'en')); } document.addEventListener('languagechange',()=>{ renderHowToUpload(); renderHowToImport(); }); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootI18n, {once:true}); else bootI18n();
 })();
