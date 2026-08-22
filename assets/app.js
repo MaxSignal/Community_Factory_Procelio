@@ -31,6 +31,7 @@ $('#sortSelect').onchange=e=>{sortKey=e.target.value;renderRobots()};$('#sortDir
 
 function showAuth(mode){authMode=mode;$('#authTitle').textContent=mode==='login'?'Login':'Register';$('#authSubmit').textContent=mode==='login'?'Login':'Register';$('#authError').textContent='';$('#authForm').reset();modal('#authModal')}
 $('#howToUploadBtn').onclick=()=>modal('#howToUploadModal');
+$('#howToImportBtn').onclick=()=>modal('#howToImportModal');
 $('#loginBtn').onclick=()=>showAuth('login');$('#registerBtn').onclick=()=>showAuth('register');$('#logoutBtn').onclick=async()=>{await api('/api/auth/logout',{method:'POST'});await refreshMe()};
 $('#authForm').onsubmit=async e=>{e.preventDefault();$('#authError').textContent='';try{await api(authMode==='login'?'/api/auth/login':'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('#authUsername').value,password:$('#authPassword').value})});if(authMode==='register'){alert('Registration complete. Please log in.');showAuth('login')}else{modal('#authModal',false);await refreshMe()}}catch(err){$('#authError').textContent=err.message}};
 
@@ -68,7 +69,25 @@ async function showDetail(id){
   const own=loggedIn&&loggedIn.toLowerCase()===String(b.username).toLowerCase();
   detailPreviews=b.preview_urls||[];detailPreviewIndex=0;
   $('#detailBody').innerHTML=`<div class="detail"><div><img src="${esc(b.thumbnail_url)}" alt="${esc(b.name)}"></div><div><h2>${esc(b.name)}</h2><div class="owner">Player: ${esc(b.username)}</div><div class="date">Uploaded: ${esc(formatDate(b.created_at))}</div><div class="description">${esc(b.description||'No description')}</div><div class="detail-actions"><button class="primary" id="detailDownload">Download Bot</button>${own||isAdmin?'<button class="danger" id="detailDelete">Delete Bot</button>':''}</div></div></div><div class="preview-gallery hidden" id="detailPreviewBox"><h3>Preview images</h3><div class="preview-view"><img id="detailPreviewImage" alt="Bot preview"></div><div class="preview-nav"><button type="button" id="detailPrev">←</button><span class="preview-count" id="detailPreviewCount">1 / 1</span><button type="button" id="detailNext">→</button></div></div>`;
-  $('#detailDownload').onclick=()=>location.href=b.download_url;
+  $('#detailDownload').onclick=async()=>{
+    $('#importInfoText').value='';
+    $('#importInfoError').textContent='';
+    $('#downloadBotConfirm').onclick=null;
+    modal('#downloadInfoModal');
+    try {
+      const info=await api('/api/robots/'+encodeURIComponent(b.id)+'/import-info');
+      const data=await info.json();
+      $('#importInfoText').value=data.import_line;
+      $('#downloadBotConfirm').onclick=()=>{ location.href=b.download_url; };
+    } catch(err) {
+      $('#importInfoError').textContent=err.message;
+    }
+  };
+  $('#copyImportInfo').onclick=async()=>{
+    const value=$('#importInfoText').value;
+    if(!value)return;
+    try{await navigator.clipboard.writeText(value);$('#copyImportInfo').textContent='Copied';setTimeout(()=>$('#copyImportInfo').textContent='Copy',1200)}catch(_){$('#importInfoText').focus();$('#importInfoText').select();document.execCommand('copy');$('#copyImportInfo').textContent='Copied';setTimeout(()=>$('#copyImportInfo').textContent='Copy',1200)}
+  };
   if(own||isAdmin){$('#detailDelete').onclick=async()=>{const reason=isAdmin&&!own?'Delete this bot as administrator?':'Delete your bot?';if(!confirm(`${reason}\nThis cannot be undone.`))return;try{await api('/api/robots/'+encodeURIComponent(b.id),{method:'DELETE'});modal('#detailModal',false);await loadRobots()}catch(err){alert(err.message)}}}
   renderDetailPreview();modal('#detailModal')
 }

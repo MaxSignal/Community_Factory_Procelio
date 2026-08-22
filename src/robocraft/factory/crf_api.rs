@@ -213,6 +213,22 @@ pub async fn delete(state: Data<AppState>, req: HttpRequest, id: Path<String>) -
     }
 }
 
+#[derive(Serialize)]
+struct ImportInfoResponse {
+    import_line: String,
+}
+
+#[get("/api/robots/{id}/import-info")]
+pub async fn import_info(state: Data<AppState>, id: Path<String>) -> HttpResponse {
+    let Ok(Some(robot)) = state.storage.robot(&id) else {
+        return HttpResponse::NotFound().finish();
+    };
+    match state.storage.index_entry(&robot) {
+        Ok(line) => HttpResponse::Ok().json(ImportInfoResponse { import_line: line }),
+        Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
+    }
+}
+
 #[get("/api/robots/{id}/download")]
 pub async fn download(state: Data<AppState>, id: Path<String>) -> HttpResponse {
     let Ok(Some(robot)) = state.storage.robot(&id) else { return HttpResponse::NotFound().finish(); };

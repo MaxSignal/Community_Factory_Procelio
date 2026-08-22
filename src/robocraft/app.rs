@@ -131,10 +131,6 @@ impl Storage {
         }
     }
 
-    pub fn is_admin(&self, username: &str) -> Result<bool, AppError> {
-        Ok(self.read_users()?.into_iter().find(|u| u.username.eq_ignore_ascii_case(username)).map(|u| u.admin).unwrap_or(false))
-    }
-
     pub fn add_robot(&self, mut robot: Robot, bot: &[u8], thumb: &[u8], previews: &[(String, Vec<u8>)], bot_name: &str, footer: &[u8]) -> Result<(), AppError> {
         fs::write(self.root.join("bots").join(&robot.bot_file_name), bot)?;
         fs::write(self.root.join("thumbnails").join(format!("{}.jpg", robot.id)), thumb)?;
@@ -200,6 +196,18 @@ impl Storage {
 
     pub fn robots(&self) -> Result<Vec<Robot>, AppError> { self.read_robots() }
     pub fn robot(&self, id: &str) -> Result<Option<Robot>, AppError> { Ok(self.read_robots()?.into_iter().find(|r| r.id == id)) }
+
+    pub fn index_entry(&self, robot: &Robot) -> Result<String, AppError> {
+        use base64::{engine::general_purpose::STANDARD, Engine as _};
+        let encoded_filename = STANDARD.encode(robot.bot_file_name.as_bytes());
+        let existing = fs::read_to_string(&self.index_file).unwrap_or_default();
+        let normalized = existing.replace("\r\n", "\n").replace('\r', "\n");
+        normalized
+            .lines()
+            .find(|line| line.split(',').next().unwrap_or_default() == encoded_filename)
+            .map(|line| line.to_string())
+            .ok_or_else(|| AppError::Invalid("The corresponding index.file entry could not be found.".into()))
+    }
 
     pub fn delete_robot(&self, id: &str, username: &str, admin: bool) -> Result<bool, AppError> {
         let mut robots = self.read_robots()?;

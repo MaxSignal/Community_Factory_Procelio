@@ -28,6 +28,7 @@ async fn main() -> std::io::Result<()> {
             .service(robocraft::factory::crf_api::get)
             .service(robocraft::factory::crf_api::upload)
             .service(robocraft::factory::crf_api::delete)
+            .service(robocraft::factory::crf_api::import_info)
             .service(robocraft::factory::crf_api::download)
             .service(robocraft::factory::crf_api::thumbnail)
             .service(robocraft::factory::crf_api::preview)
