@@ -80,11 +80,14 @@ async function showDetail(id){
 
       const response=await fetch(b.download_url);
       if (!response.ok) throw new Error('Failed to download the bot file.');
+      const contentDisposition=response.headers.get('Content-Disposition') || '';
+      const filenameMatch=contentDisposition.match(/filename\*=UTF-8''([^;]+)|filename=\"?([^;\"]+)\"?/i);
+      const downloadFilename=filenameMatch ? decodeURIComponent((filenameMatch[1] || filenameMatch[2]).trim()) : null;
       const blob=await response.blob();
       const url=URL.createObjectURL(blob);
       const link=document.createElement('a');
       link.href=url;
-      link.download=b.name.replace(/[^a-zA-Z0-9._-]+/g,'_')+'.bot';
+      link.download=downloadFilename || b.name.replace(/[^a-zA-Z0-9._-]+/g,'_')+'.bot';
       document.body.appendChild(link);
       link.click();
       link.remove();
