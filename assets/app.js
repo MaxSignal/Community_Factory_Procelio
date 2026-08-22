@@ -52,8 +52,8 @@ async function loadRobots(){const r=await api('/api/robots');const data=await r.
 $('#sortSelect').onchange=e=>{sortKey=e.target.value;renderRobots()};$('#sortDirection').onclick=()=>{sortDesc=!sortDesc;renderRobots()};
 
 function showAuth(mode){authMode=mode;$('#authTitle').textContent=mode==='login'?t('login'):t('register');$('#authSubmit').textContent=mode==='login'?t('login'):t('register');$('#authError').textContent='';$('#authForm').reset();modal('#authModal')}
-$('#howToUploadBtn').onclick=()=>modal('#howToUploadModal');
-$('#howToImportBtn').onclick=()=>modal('#howToImportModal');
+$('#howToUploadBtn').onclick=()=>{ if(typeof window.refreshI18n==='function') window.refreshI18n(); modal('#howToUploadModal'); };
+$('#howToImportBtn').onclick=()=>{ if(typeof window.refreshI18n==='function') window.refreshI18n(); modal('#howToImportModal'); };
 $('#loginBtn').onclick=()=>showAuth('login');$('#registerBtn').onclick=()=>showAuth('register');$('#logoutBtn').onclick=async()=>{await api('/api/auth/logout',{method:'POST'});await refreshMe()};
 $('#authForm').onsubmit=async e=>{e.preventDefault();$('#authError').textContent='';try{await api(authMode==='login'?'/api/auth/login':'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('#authUsername').value,password:$('#authPassword').value})});if(authMode==='register'){alert(t('registrationComplete'));showAuth('login')}else{modal('#authModal',false);await refreshMe()}}catch(err){$('#authError').textContent=err.message}};
 
