@@ -53,11 +53,11 @@ async function refreshMe(){
   $('#userPill').textContent=loggedIn?`${t('signedInAs')} ${loggedIn}${isAdmin?` (${t('admin')})`:''}`:'';
   $('#loginBtn').classList.toggle('hidden',!!loggedIn);$('#registerBtn').classList.toggle('hidden',!!loggedIn);$('#logoutBtn').classList.toggle('hidden',!loggedIn);
   arrangeAuthButtons();
-  const reportListLink=$('#reportListLink'); if(reportListLink) reportListLink.classList.toggle('hidden',!isAdmin);
+  const reportListLink=$('#reportListLink'); const reportFooterSep=$('#reportFooterSep'); if(reportListLink) reportListLink.classList.toggle('hidden',!isAdmin); if(reportFooterSep) reportFooterSep.classList.toggle('hidden',!isAdmin);
   syncMobileHeader();
 }
 
-function syncReportFooter(){ const link=$('#reportListLink'); if(link) link.classList.toggle('hidden',!isAdmin); }
+function syncReportFooter(){ const link=$('#reportListLink'); const sep=$('#reportFooterSep'); if(link) link.classList.toggle('hidden',!isAdmin); if(sep) sep.classList.toggle('hidden',!isAdmin); }
 
 function updateDynamicLanguage(){
   if(!loggedIn) $('#userPill').textContent=''; else $('#userPill').textContent=isAdmin?`${t('signedInAs')} ${loggedIn} (${t('admin')})`:`${t('signedInAs')} ${loggedIn}`;
