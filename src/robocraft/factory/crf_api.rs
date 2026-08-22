@@ -158,7 +158,10 @@ pub async fn upload(state: Data<AppState>, req: HttpRequest, mut payload: Multip
     while let Some(item) = payload.next().await {
         let field = match item { Ok(v) => v, Err(e) => return HttpResponse::BadRequest().body(e.to_string()) };
         let field_name = field.name().unwrap_or("").to_string();
-        let original_filename = field.content_disposition().get_filename().map(|v| v.to_string());
+        let original_filename = field
+            .content_disposition()
+            .and_then(|cd| cd.get_filename())
+            .map(|v| v.to_string());
         let data = match read_field(field).await { Ok(v) => v, Err(e) => return HttpResponse::BadRequest().body(e.to_string()) };
         match field_name.as_str() {
             "name" => name = Some(String::from_utf8_lossy(&data).trim().to_string()),
