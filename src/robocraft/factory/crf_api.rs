@@ -151,17 +151,19 @@ pub async fn upload(state: Data<AppState>, req: HttpRequest, mut payload: Multip
     let mut name = None::<String>;
     let mut description = None::<String>;
     let mut bot = None::<Vec<u8>>;
+    let mut bot_filename = None::<String>;
     let mut thumb = None::<Vec<u8>>;
     let mut preview_files: Vec<Vec<u8>> = Vec::new();
 
     while let Some(item) = payload.next().await {
         let field = match item { Ok(v) => v, Err(e) => return HttpResponse::BadRequest().body(e.to_string()) };
         let field_name = field.name().unwrap_or("").to_string();
+        let original_filename = field.content_disposition().get_filename().map(|v| v.to_string());
         let data = match read_field(field).await { Ok(v) => v, Err(e) => return HttpResponse::BadRequest().body(e.to_string()) };
         match field_name.as_str() {
             "name" => name = Some(String::from_utf8_lossy(&data).trim().to_string()),
             "description" => description = Some(String::from_utf8_lossy(&data).trim().to_string()),
-            "bot" => bot = Some(data),
+            "bot" => { bot_filename = original_filename; bot = Some(data); },
             "thumbnail" => thumb = Some(data),
             "previews" => { if !data.is_empty() { preview_files.push(data); } },
             _ => {}
@@ -173,6 +175,7 @@ pub async fn upload(state: Data<AppState>, req: HttpRequest, mut payload: Multip
     let Some(name) = name else { return HttpResponse::BadRequest().body("Robot name is required."); };
     if name.len() > 120 || desc.len() > 2000 { return HttpResponse::BadRequest().body("Input is too long."); }
     let Some(bot) = bot.filter(|b| !b.is_empty() && b.len() <= 32 * 1024 * 1024) else { return HttpResponse::BadRequest().body("Bot file is required."); };
+    let Some(bot_filename) = bot_filename.filter(|f| !f.is_empty()) else { return HttpResponse::BadRequest().body("Bot filename is required."); };
     let Some(thumb) = thumb else { return HttpResponse::BadRequest().body("Thumbnail is required."); };
     if thumb.len() > 12 * 1024 * 1024 { return HttpResponse::BadRequest().body("Image is too large."); }
 
@@ -180,6 +183,19 @@ pub async fn upload(state: Data<AppState>, req: HttpRequest, mut payload: Multip
         Ok(info) => info,
         Err(e) => return HttpResponse::BadRequest().body(e.to_string()),
     };
+
+    let encoded_footer = BASE64.encode(&bot_info.footer);
+    let expected_suffix = encoded_footer.replace('/', "#");
+    let Some((account_id, supplied_suffix)) = bot_filename.strip_suffix(".bot").or_else(|| bot_filename.strip_suffix(".BOT")).and_then(|stem| stem.split_once('_')) else {
+        return HttpResponse::BadRequest().body("Invalid bot filename. Expected <19-digit-account-id>_<footer-base64>.bot.");
+    };
+    if account_id.len() != 19 || !account_id.bytes().all(|b| b.is_ascii_digit()) || account_id == "0000000000000000000" {
+        return HttpResponse::BadRequest().body("Invalid bot filename account ID. Expected a 19-digit numeric ID.");
+    }
+    if supplied_suffix != expected_suffix {
+        return HttpResponse::BadRequest().body("Invalid bot filename checksum suffix. The filename must contain the Base64 MD5 footer (with '/' replaced by '#').");
+    }
+    let canonical_bot_file_name = format!("{}_{}.bot", account_id, expected_suffix);
     let processed_thumbnail = match make_thumbnail(&thumb) { Ok(v) => v, Err(e) => return HttpResponse::BadRequest().body(e.to_string()) };
     if preview_files.len() > 12 { return HttpResponse::BadRequest().body("You can upload up to 12 preview images."); }
     let mut processed_previews = Vec::new();
@@ -189,11 +205,10 @@ pub async fn upload(state: Data<AppState>, req: HttpRequest, mut payload: Multip
         processed_previews.push((format!("{}.jpg", i), jpeg));
     }
     let id = Uuid::new_v4().to_string();
-    let encoded_footer = BASE64.encode(&bot_info.footer).replace('/', "#");
-    let bot_file_name = format!("{}_{}.bot", username, encoded_footer);
     let robot = Robot {
         id: id.clone(), name, description: desc, username: username.clone(),
-        created_at: now(), bot_file_name, bot_file_path: String::new(), thumbnail_path: String::new(), preview_paths: Vec::new(),
+        created_at: now(), account_id: account_id.to_string(), bot_file_name: canonical_bot_file_name.clone(),
+        bot_footer_base64: encoded_footer.clone(), bot_file_path: String::new(), thumbnail_path: String::new(), preview_paths: Vec::new(),
     };
     if let Err(e) = state.storage.add_robot(robot.clone(), &bot, &processed_thumbnail, &processed_previews, &bot_info.name, &bot_info.footer) { return HttpResponse::InternalServerError().body(e.to_string()); }
     HttpResponse::Created().json(public_robot(robot))
@@ -233,7 +248,18 @@ pub async fn import_info(state: Data<AppState>, id: Path<String>) -> HttpRespons
 pub async fn download(state: Data<AppState>, id: Path<String>) -> HttpResponse {
     let Ok(Some(robot)) = state.storage.robot(&id) else { return HttpResponse::NotFound().finish(); };
     match std::fs::read(state.storage.bot_path(&robot)) {
-        Ok(bytes) => HttpResponse::Ok().insert_header(("Content-Type", "application/octet-stream")).insert_header(("Content-Disposition", format!("attachment; filename=\"{}\"", robot.bot_file_name))).body(bytes),
+        Ok(bytes) => {
+            let filename = if robot.account_id.len() == 19 && robot.account_id.bytes().all(|b| b.is_ascii_digit()) && bytes.len() >= 16 {
+                let footer = &bytes[bytes.len() - 16..];
+                format!("{}_{}.bot", robot.account_id, BASE64.encode(footer).replace('/', "#"))
+            } else {
+                robot.bot_file_name.clone()
+            };
+            HttpResponse::Ok()
+                .insert_header(("Content-Type", "application/octet-stream"))
+                .insert_header(("Content-Disposition", format!("attachment; filename=\"{}\"", filename)))
+                .body(bytes)
+        },
         Err(e) => HttpResponse::InternalServerError().body(e.to_string()),
     }
 }

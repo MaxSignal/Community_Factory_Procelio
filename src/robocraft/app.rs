@@ -38,7 +38,11 @@ pub struct Robot {
     pub description: String,
     pub username: String,
     pub created_at: u64,
+    #[serde(default)]
+    pub account_id: String,
     pub bot_file_name: String,
+    #[serde(default)]
+    pub bot_footer_base64: String,
     pub bot_file_path: String,
     pub thumbnail_path: String,
     #[serde(default)]
