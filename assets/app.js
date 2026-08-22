@@ -14,6 +14,27 @@ async function api(url,opts={}){const r=await fetch(url,{...opts,credentials:'sa
 function esc(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function formatDate(timestamp){return new Intl.DateTimeFormat(undefined,{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(Number(timestamp)*1000))}
 
+
+function syncMobileHeader(){
+  const pairs=[['howToUploadBtn','mobileHowToUploadBtn'],['howToImportBtn','mobileHowToImportBtn'],['uploadBtn','mobileUploadBtn'],['loginBtn','mobileLoginBtn'],['registerBtn','mobileRegisterBtn'],['languageBtn','mobileLanguageBtn'],['logoutBtn','mobileLogoutBtn']];
+  for(const [a,b] of pairs){const src=$('#'+a),dst=$('#'+b);if(src&&dst){dst.textContent=src.textContent;dst.className=src.className;dst.classList.remove('hidden');if(src.classList.contains('hidden'))dst.classList.add('hidden');}}
+  const pill=$('#userPill'),mp=$('#mobileUserPill'); if(pill&&mp) mp.textContent=pill.textContent;
+}
+function closeMobileMenu(){const m=$('#mobileMenu'),b=$('#mobileMenuBtn');if(m){m.classList.remove('open')}if(b)b.setAttribute('aria-expanded','false')}
+function setupMobileMenu(){
+  const btn=$('#mobileMenuBtn'),menu=$('#mobileMenu'); if(!btn||!menu)return;
+  btn.onclick=()=>{const open=!menu.classList.contains('open');menu.classList.toggle('open',open);btn.setAttribute('aria-expanded',String(open));syncMobileHeader();};
+  const bind=(id,fn)=>{const el=$('#'+id);if(el)el.onclick=()=>{closeMobileMenu();fn();};};
+  bind('mobileHowToUploadBtn',()=>$('#howToUploadBtn')?.click());
+  bind('mobileHowToImportBtn',()=>$('#howToImportBtn')?.click());
+  bind('mobileUploadBtn',()=>$('#uploadBtn')?.click());
+  bind('mobileLoginBtn',()=>$('#loginBtn')?.click());
+  bind('mobileRegisterBtn',()=>$('#registerBtn')?.click());
+  bind('mobileLanguageBtn',()=>$('#languageBtn')?.click());
+  bind('mobileLogoutBtn',()=>$('#logoutBtn')?.click());
+  document.addEventListener('click',e=>{if(menu.classList.contains('open')&&!menu.contains(e.target)&&e.target!==btn)closeMobileMenu();});
+}
+
 function arrangeAuthButtons(){
   const registerBtn=$('#registerBtn');
   const logoutBtn=$('#logoutBtn');
@@ -32,6 +53,7 @@ async function refreshMe(){
   $('#userPill').textContent=loggedIn?`${t('signedInAs')} ${loggedIn}${isAdmin?` (${t('admin')})`:''}`:'';
   $('#loginBtn').classList.toggle('hidden',!!loggedIn);$('#registerBtn').classList.toggle('hidden',!!loggedIn);$('#logoutBtn').classList.toggle('hidden',!loggedIn);
   arrangeAuthButtons();
+  syncMobileHeader();
 }
 
 function updateDynamicLanguage(){
@@ -40,7 +62,7 @@ function updateDynamicLanguage(){
   $('#sortDirection').title=sortDesc?t('descending'):t('ascending');
   if($('#detailBody').querySelector('.detail')){ const d=$('#detailBody').querySelector('.date'); if(d){ const m=d.textContent.match(/: (.*)$/); d.textContent=`${t('uploaded')}: ${m?m[1]:d.textContent}`; } }
 }
-document.addEventListener('languagechange',()=>{updateDynamicLanguage();renderRobots(); if($('#uploadModal').classList.contains('show')) $('#previewFileList').textContent=$('#previewFiles').files.length?$('#previewFileList').textContent:t('noPreview');});
+document.addEventListener('languagechange',()=>{updateDynamicLanguage();syncMobileHeader();renderRobots(); if($('#uploadModal').classList.contains('show')) $('#previewFileList').textContent=$('#previewFiles').files.length?$('#previewFileList').textContent:t('noPreview');});
 
 function sortRobots(robots){return [...robots].sort((a,b)=>{let av=a[sortKey],bv=b[sortKey];if(sortKey==='created_at'){av=Number(av)||0;bv=Number(bv)||0}else{av=String(av??'').toLocaleLowerCase();bv=String(bv??'').toLocaleLowerCase()}if(av<bv)return sortDesc?1:-1;if(av>bv)return sortDesc?-1:1;return 0})}
 function renderRobots(){
@@ -58,6 +80,8 @@ $('#loginBtn').onclick=()=>showAuth('login');$('#registerBtn').onclick=()=>showA
 $('#authForm').onsubmit=async e=>{e.preventDefault();$('#authError').textContent='';try{await api(authMode==='login'?'/api/auth/login':'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('#authUsername').value,password:$('#authPassword').value})});if(authMode==='register'){alert(t('registrationComplete'));showAuth('login')}else{modal('#authModal',false);await refreshMe()}}catch(err){$('#authError').textContent=err.message}};
 
 arrangeAuthButtons();
+setupMobileMenu();
+syncMobileHeader();
 
 $('#uploadBtn').onclick=()=>{
   if(!loggedIn){alert(t('uploadLoginRequired'));return}
