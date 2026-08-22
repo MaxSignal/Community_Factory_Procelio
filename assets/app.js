@@ -14,11 +14,24 @@ async function api(url,opts={}){const r=await fetch(url,{...opts,credentials:'sa
 function esc(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
 function formatDate(timestamp){return new Intl.DateTimeFormat(undefined,{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(Number(timestamp)*1000))}
 
+function arrangeAuthButtons(){
+  const registerBtn=$('#registerBtn');
+  const logoutBtn=$('#logoutBtn');
+  const languageBtn=$('#languageBtn');
+  if(!registerBtn || !logoutBtn || !languageBtn) return;
+  if(loggedIn){
+    logoutBtn.parentNode.insertBefore(languageBtn, logoutBtn.nextSibling);
+  }else{
+    registerBtn.parentNode.insertBefore(languageBtn, registerBtn.nextSibling);
+  }
+}
+
 async function refreshMe(){
   const r=await fetch('/api/auth/me',{credentials:'same-origin'});const m=await r.json();
   loggedIn=m.logged_in?m.username:null; isAdmin=!!m.admin;
   $('#userPill').textContent=loggedIn?`${t('signedInAs')} ${loggedIn}${isAdmin?` (${t('admin')})`:''}`:'';
   $('#loginBtn').classList.toggle('hidden',!!loggedIn);$('#registerBtn').classList.toggle('hidden',!!loggedIn);$('#logoutBtn').classList.toggle('hidden',!loggedIn);
+  arrangeAuthButtons();
 }
 
 function updateDynamicLanguage(){
@@ -45,6 +58,7 @@ $('#loginBtn').onclick=()=>showAuth('login');$('#registerBtn').onclick=()=>showA
 $('#authForm').onsubmit=async e=>{e.preventDefault();$('#authError').textContent='';try{await api(authMode==='login'?'/api/auth/login':'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('#authUsername').value,password:$('#authPassword').value})});if(authMode==='register'){alert('Registration complete. Please log in.');showAuth('login')}else{modal('#authModal',false);await refreshMe()}}catch(err){$('#authError').textContent=err.message}};
 
 $('#languageBtn').onclick=()=>{const next=getLanguage()==='en'?'ja':'en';setLanguage(next);};
+arrangeAuthButtons();
 
 $('#uploadBtn').onclick=()=>{
   if(!loggedIn){alert(getLanguage()==='ja'?'Botをアップロードするにはログインまたは登録してください。':'Please log in or register to upload a bot.');return}
