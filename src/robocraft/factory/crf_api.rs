@@ -47,9 +47,9 @@ fn validate_bot_file(bytes: &[u8]) -> Result<BotFileInfo, AppError> {
     const NAME_LEN_OFFSET: usize = 0x10;
     const RECORD_SIZE: usize = 13;
     const FOOTER_LEN: usize = 16;
-    const MIN_TRAILER_LEN: usize = 4;
-
-    if bytes.len() < NAME_LEN_OFFSET + 1 + 4 + MIN_TRAILER_LEN + FOOTER_LEN {
+    // The area after the block records is not a fixed-size zero trailer.
+    // Different valid .bot files may contain additional data before the MD5 footer.
+    if bytes.len() < NAME_LEN_OFFSET + 1 + 4 + FOOTER_LEN {
         return Err(AppError::Invalid("Bot file is too small.".into()));
     }
     if &bytes[0..4] != [0xC5, 0x71, 0xB0, 0x40] {
@@ -76,12 +76,11 @@ fn validate_bot_file(bytes: &[u8]) -> Result<BotFileInfo, AppError> {
     let footer_start = bytes.len().checked_sub(FOOTER_LEN)
         .ok_or_else(|| AppError::Invalid("Invalid bot footer.".into()))?;
 
-    let trailer_len = footer_start.saturating_sub(trailer_start);
-    if !(4..=5).contains(&trailer_len) {
-        return Err(AppError::Invalid("Invalid bot file layout or trailer.".into()));
-    }
-    if bytes[trailer_start..footer_start].iter().any(|&b| b != 0) {
-        return Err(AppError::Invalid("Invalid bot file trailer.".into()));
+    // The records must fit before the footer, but the bytes between the records
+    // and the footer are format-specific and must be preserved rather than
+    // interpreted as a fixed zero trailer.
+    if trailer_start > footer_start {
+        return Err(AppError::Invalid("Block data extends beyond the MD5 footer.".into()));
     }
 
     let footer = bytes[footer_start..].to_vec();
