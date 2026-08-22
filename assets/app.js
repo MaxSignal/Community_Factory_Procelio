@@ -116,7 +116,14 @@ async function showDetail(id){
   const r=await api('/api/robots/'+encodeURIComponent(id));const b=await r.json();
   const own=loggedIn&&loggedIn.toLowerCase()===String(b.username).toLowerCase();
   detailPreviews=b.preview_urls||[];detailPreviewIndex=0;
-  $('#detailBody').innerHTML=`<div class="detail"><div><img src="${esc(b.thumbnail_url)}" alt="${esc(b.name)}"></div><div><h2>${esc(b.name)}</h2><div class="owner">${esc(t('player'))}: ${esc(b.username)}</div><div class="date">${esc(t('uploaded'))}: ${esc(formatDate(b.created_at))}</div><div class="description">${esc(b.description||t('noDescription'))}</div><div class="detail-actions"><button class="primary" id="detailDownload">${esc(t('downloadBot'))}</button>${own||isAdmin?`<button class="danger" id="detailDelete">${esc(t('deleteBot'))}</button>`:''}</div></div></div><div class="preview-gallery hidden" id="detailPreviewBox"><h3>${esc(t('previewGallery'))}</h3><div class="preview-view"><img id="detailPreviewImage" alt="${esc(t('previewImageAlt'))}"></div><div class="preview-nav"><button type="button" id="detailPrev">←</button><span class="preview-count" id="detailPreviewCount">1 / 1</span><button type="button" id="detailNext">→</button></div></div>`;
+  $('#detailBody').innerHTML=`<div class="detail"><div><img src="${esc(b.thumbnail_url)}" alt="${esc(b.name)}"></div><div><h2>${esc(b.name)}</h2><div class="owner">${esc(t('player'))}: ${esc(b.username)}</div><div class="date">${esc(t('uploaded'))}: ${esc(formatDate(b.created_at))}</div><div class="description">${esc(b.description||t('noDescription'))}</div><div class="detail-actions"><button type="button" id="detailShare">${esc(t('share'))}</button><button class="primary" id="detailDownload">${esc(t('downloadBot'))}</button>${own||isAdmin?`<button class="danger" id="detailDelete">${esc(t('deleteBot'))}</button>`:''}</div></div></div><div class="preview-gallery hidden" id="detailPreviewBox"><h3>${esc(t('previewGallery'))}</h3><div class="preview-view"><img id="detailPreviewImage" alt="${esc(t('previewImageAlt'))}"></div><div class="preview-nav"><button type="button" id="detailPrev">←</button><span class="preview-count" id="detailPreviewCount">1 / 1</span><button type="button" id="detailNext">→</button></div></div>`;
+  $('#detailShare').onclick=()=>{
+    const url=new URL(window.location.href);
+    url.searchParams.set('bot', b.id);
+    $('#shareLinkText').value=url.toString();
+    $('#shareCopy').textContent=t('copy');
+    modal('#shareModal');
+  };
   $('#detailDownload').onclick=async()=>{
     $('#importInfoText').value='';
     $('#importInfoError').textContent='';
@@ -147,6 +154,11 @@ async function showDetail(id){
       modal('#downloadInfoModal');
     }
   };
+  $('#shareCopy').onclick=async()=>{
+    const value=$('#shareLinkText').value;
+    if(!value)return;
+    try{await navigator.clipboard.writeText(value);$('#shareCopy').textContent=t('copied');setTimeout(()=>$('#shareCopy').textContent=t('copy'),1200)}catch(_){$('#shareLinkText').focus();$('#shareLinkText').select();document.execCommand('copy');$('#shareCopy').textContent=t('copied');setTimeout(()=>$('#shareCopy').textContent=t('copy'),1200)}
+  };
   $('#copyImportInfo').onclick=async()=>{
     const value=$('#importInfoText').value;
     if(!value)return;
@@ -156,4 +168,4 @@ async function showDetail(id){
   renderDetailPreview();modal('#detailModal')
 }
 qs('[data-close]').forEach(b=>b.onclick=()=>modal('#'+b.dataset.close,false));qs('.modal-backdrop').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show')}));$('#imageLightboxClose').onclick=closeLightbox;$('#imageLightbox').addEventListener('click',e=>{if(e.target===$('#imageLightbox'))closeLightbox()});document.addEventListener('keydown',e=>{if(lightboxOpen&&e.key==='Escape')closeLightbox()});window.addEventListener('resize',()=>{if($('#uploadModal').classList.contains('show')){resizeCanvas();drawCrop()}});
-(async()=>{await refreshMe();await loadRobots()})().catch(console.error);
+(async()=>{await refreshMe();await loadRobots();const botId=new URLSearchParams(window.location.search).get('bot');if(botId&&robotsCache.some(r=>String(r.id)===String(botId)))showDetail(botId)})().catch(console.error);

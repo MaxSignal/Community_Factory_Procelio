@@ -9,7 +9,7 @@
       'uploadBot':'Upload Bot','description':'Description','botFile':'Bot file','thumbnail':'Thumbnail','previewImages':'Preview images','cancel':'Cancel',
       'thumbnailHelp':'Crop to the same 216:116 ratio as the site thumbnail. The saved image is automatically adjusted to stay within 1 MB.',
       'cropHelp':'Drag the image to adjust the crop. Use the mouse wheel to zoom.','thumbPreview':'Thumbnail preview','noPreview':'No preview images selected.',
-      'optional':'Optional. You can attach multiple images to show on the Bot Details page.','downloadBot':'Download Bot','deleteBot':'Delete Bot','player':'Player','uploaded':'Uploaded',
+      'optional':'Optional. You can attach multiple images to show on the Bot Details page.','downloadBot':'Download Bot','share':'Share','shareTitle':'Share bot','shareHelp':'Copy or share this link to open this Bot Details page.','deleteBot':'Delete Bot','player':'Player','uploaded':'Uploaded',
       'previewGallery':'Preview images','importAbout':'About','importDownload':'Download','previewImageAlt':'Bot preview','importInfo':'Import information','copy':'Copy','saveImport':'Save this line and append it to index.file in your templates folder.','noDescription':'No description','registrationComplete':'Registration complete. Please log in.','importInfoError':'Failed to get import information.','downloadError':'Failed to download the bot file.','copied':'Copied','adminDeleteConfirm':'Delete this bot as administrator?','deleteConfirm':'Delete your bot?','cannotUndo':'This cannot be undone.','uploadLoginRequired':'Please log in or register to upload a bot.','thumbnailRequired':'Please select a thumbnail.',
       'uploadSteps':['Register or log in.','Click the Upload button.','Enter the required information.','Upload the thumbnail image and bot data.','Upload preview images.'],
       'uploadStep4Help':'First, export your bot from the game as a <code>.bot</code> file. In the Garage, select <strong>Prefabs → Local Export</strong>, then select the bot you want to export. After exporting, check the <code>templates</code> folder:',
@@ -24,7 +24,7 @@
       'uploadBot':'Botをアップロード','description':'機体説明','botFile':'Botファイル','thumbnail':'サムネイル','previewImages':'プレビュー画像','cancel':'キャンセル',
       'thumbnailHelp':'サイトのサムネイルと同じ216:116の比率になるように切り抜いてください。保存時に1MB以内になるよう自動調整されます。',
       'cropHelp':'画像をドラッグして切り抜き位置を調整できます。マウスホイールで拡大・縮小できます。','thumbPreview':'サムネイルプレビュー','noPreview':'プレビュー画像は選択されていません。',
-      'optional':'任意。Bot詳細ページに表示するプレビュー画像を複数添付できます。','downloadBot':'Botをダウンロード','deleteBot':'Botを削除','player':'プレイヤー','uploaded':'アップロード日',
+      'optional':'任意。Bot詳細ページに表示するプレビュー画像を複数添付できます。','downloadBot':'Botをダウンロード','share':'共有','shareTitle':'Botを共有','shareHelp':'このリンクをコピーまたは共有すると、このBotの詳細ページを開けます。','deleteBot':'Botを削除','player':'プレイヤー','uploaded':'アップロード日',
       'previewGallery':'プレビュー画像','importAbout':'詳細','importDownload':'ダウンロード','previewImageAlt':'Botプレビュー','importInfo':'インポート情報','copy':'コピー','saveImport':'この1行を保存し、templatesフォルダのindex.fileに追記してください。','noDescription':'説明なし','registrationComplete':'登録が完了しました。ログインしてください。','importInfoError':'インポート情報の取得に失敗しました。','downloadError':'Botファイルのダウンロードに失敗しました。','copied':'コピーしました','adminDeleteConfirm':'管理者としてこのBotを削除しますか？','deleteConfirm':'このBotを削除しますか？','cannotUndo':'この操作は元に戻せません。','uploadLoginRequired':'Botをアップロードするにはログインまたは登録してください。','thumbnailRequired':'サムネイルを選択してください。',
       'uploadSteps':['登録またはログインする。','アップロードボタンを押す。','必要事項を入力する。','サムネイル画像とボットデータをアップロードする。','プレビュー用の画像をアップロードする。'],
       'uploadStep4Help':'まずゲーム内でボットを.botファイルとしてエクスポートする必要があります。ガレージにて<strong>Prefabs → Local Export</strong>を選択し、エクスポートするボットを選択してください。エクスポート後、<code>templates</code>フォルダを確認してください。',
@@ -84,7 +84,7 @@
   function applyStatic(){
     text('howToUploadBtn','howUpload'); text('howToImportBtn','howImport'); text('uploadBtn','upload'); text('loginBtn','login'); text('registerBtn','register'); text('logoutBtn','logout'); text('languageBtn','language');
     text('sortLabel','sortBy'); text('sortUploadDate','uploadDate'); text('sortUploader','uploader'); text('sortRobotName','robotName');
-    text('howToUploadTitle','howUploadTitle'); text('howToImportTitle','howImportTitle'); text('authUsernameLabel','username'); text('authPasswordLabel','password'); text('uploadModalTitle','uploadBot');
+    text('howToUploadTitle','howUploadTitle'); text('howToImportTitle','howImportTitle'); text('shareTitle','shareTitle'); text('shareHelp','shareHelp'); text('shareCopy','copy'); text('authUsernameLabel','username'); text('authPasswordLabel','password'); text('uploadModalTitle','uploadBot');
     text('robotNameLabel','robotName'); text('descriptionLabel','description'); text('botFileLabel','botFile'); text('thumbnailLabel','thumbnail'); text('previewImagesLabel','previewImages');
     text('cancelUploadBtn','cancel'); text('cropHelp','cropHelp'); text('thumbPreviewLabel','thumbPreview'); text('detailTitle','botDetails'); text('previewGalleryTitle','previewGallery'); text('importInfoTitle','importInfo'); text('copyImportInfo','copy'); text('importInfoHelp','saveImport');
     renderHowToUpload(); renderHowToImport();
