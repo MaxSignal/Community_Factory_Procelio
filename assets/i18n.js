@@ -1,114 +1,58 @@
 (() => {
-  const KEY = 'cf-language';
-  const INITIAL = document.querySelector('meta[name="initial-language"]')?.content;
-  const dict = {
-    "How to upload":"アップロード方法",
-    "How to import to game":"ゲームへのインポート方法",
-    "Upload":"アップロード",
-    "Login":"ログイン",
-    "Register":"登録",
-    "Logout":"ログアウト",
-    "Language":"言語",
-    "Sort by":"並び替え",
-    "Upload date":"アップロード日",
-    "Uploader":"アップロード者",
-    "Robot name":"機体名",
-    "How to upload":"アップロード方法",
-    "How to import to game":"ゲームへのインポート方法",
-    "Upload Bot":"Botをアップロード",
-    "Robot name":"機体名",
-    "Description":"説明",
-    "Bot file":"Botファイル",
-    "Thumbnail":"サムネイル",
-    "Thumbnail preview":"サムネイルプレビュー",
-    "Preview images":"プレビュー画像",
-    "Optional. You can attach multiple images to show on the Bot Details page.":"任意。Bot Detailsページに表示する画像を複数添付できます。",
-    "No preview images selected.":"プレビュー画像が選択されていません。",
-    "Cancel":"キャンセル",
-    "Bot Details":"Bot Details",
-    "Player:":"プレイヤー：",
-    "Uploaded:":"アップロード日：",
-    "Download Bot":"Botをダウンロード",
-    "Delete Bot":"Botを削除",
-    "Import information":"インポート情報",
-    "Copy":"コピー",
-    "Copied":"コピーしました",
-    "Save this line and append it to ":"この文字列を保存し、",
-    " in your ":" にある",
-    "templates":"templates",
-    " folder.":" に追記してください。",
-    "First, you need to export your bot from the game as a .bot file.":"まず、ゲーム内でBotを.botファイルとしてエクスポートする必要があります。",
-    "In the Garage, select Prefabs → Local Export, then select the bot you want to export.":"ガレージで「Prefabs → Local Export」を選択し、エクスポートするBotを選択してください。",
-    "After exporting, check the templates folder:":"エクスポート後、templatesフォルダを確認してください：",
-    "Register or log in.":"登録またはログインする。",
-    "Click the Upload button.":"Uploadボタンを押す。",
-    "Enter the required information.":"必要事項を入力する。",
-    "Upload the thumbnail image and bot data.":"サムネイル画像とBotデータをアップロードする。",
-    "Preview images.":"プレビュー用画像をアップロードする。",
-    "First, you need to export your bot from the game as a .bot file. In the Garage, select Prefabs → Local Export, then select the bot you want to export. After exporting, check the templates folder:":"まず、ゲーム内でBotを.botファイルとしてエクスポートする必要があります。ガレージで「Prefabs → Local Export」を選択し、エクスポートするBotを選択してください。エクスポート後、templatesフォルダを確認してください：",
-    "First, you need to export your bot from the game as a .bot file.":"まず、ゲーム内でBotを.botファイルとしてエクスポートする必要があります。",
-    "Download":"ダウンロード",
-    "Download the bot file.":"Botファイルをダウンロード",
-    "About":"詳細",
-    "No description":"説明なし",
-    "Please log in or register to upload a bot.":"Botをアップロードするにはログインまたは登録してください。",
-    "Registration complete. Please log in.":"登録が完了しました。ログインしてください。",
-    "Descending":"降順",
-    "Ascending":"昇順",
-    "bots":"Bot",
-    "No bots are registered yet.":"登録されているBotはありません。",
-    "Please select a thumbnail.":"サムネイルを選択してください。",
-    "Invalid bot file.":"Botファイルが不正です。"
-  };
-
-  function translateText(text, lang) {
-    if (lang === 'en') return Object.keys(dict).find(k => dict[k] === text) || text;
-    for (const [en, ja] of Object.entries(dict)) if (text.trim() === en) return ja;
-    return text;
-  }
-
-  function apply(lang) {
-    document.documentElement.lang = lang === 'ja' ? 'ja' : 'en';
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    const nodes = [];
-    while (walker.nextNode()) nodes.push(walker.currentNode);
-    for (const node of nodes) {
-      const parent = node.parentElement;
-      if (!parent || ['SCRIPT','STYLE','TEXTAREA'].includes(parent.tagName)) continue;
-      const original = node.nodeValue;
-      const trimmed = original.trim();
-      if (!trimmed) continue;
-      const translated = translateText(trimmed, lang);
-      if (translated !== trimmed) node.nodeValue = original.replace(trimmed, translated);
+  const STORAGE_KEY = 'cf-language';
+  const translations = {
+    en: {
+      'brand': 'Procelio Community Factory (Unofficial)',
+      'howUpload': 'How to upload', 'howImport':'How to import to game', 'upload':'Upload', 'login':'Login', 'register':'Register', 'logout':'Logout', 'language':'Language',
+      'sortBy':'Sort by','uploadDate':'Upload date','uploader':'Uploader','robotName':'Robot name','about':'About',
+      'howUploadTitle':'How to upload','howImportTitle':'How to import to game','botDetails':'Bot Details','username':'Username','password':'Password',
+      'uploadBot':'Upload Bot','description':'Description','botFile':'Bot file','thumbnail':'Thumbnail','previewImages':'Preview images','cancel':'Cancel',
+      'thumbnailHelp':'Crop to the same 216:116 ratio as the site thumbnail. The saved image is automatically adjusted to stay within 1 MB.',
+      'cropHelp':'Drag the image to adjust the crop. Use the mouse wheel to zoom.','thumbPreview':'Thumbnail preview','noPreview':'No preview images selected.',
+      'optional':'Optional. You can attach multiple images to show on the Bot Details page.','downloadBot':'Download Bot','deleteBot':'Delete Bot','player':'Player','uploaded':'Uploaded',
+      'previewGallery':'Preview images','importInfo':'Import information','copy':'Copy','saveImport':'Save this line and append it to index.file in your templates folder.','noDescription':'No description',
+      'uploadSteps':['Register or log in.','Click the Upload button.','Enter the required information.','Upload the thumbnail image and bot data.','Upload preview images.'],
+      'bot':'bot','bots':'bots','noDescription':'No description','signedInAs':'Signed in as','admin':'Admin','saveImport':'Save this line and append it to index.file in your templates folder.','importSteps':['Click the About button for the robot you want to import on this page, then select Download. Save the displayed text.','Place the downloaded file in the templates folder.','Append the displayed text from the Download dialog to the index.file in the templates folder.','In the Garage, select Prefabs, then move the Garage slots all the way to the right. The added bot will be there.']
+    },
+    ja: {
+      'brand': 'Procelio Community Factory (非公式)',
+      'howUpload': 'アップロード方法', 'howImport':'ゲームへのインポート方法', 'upload':'アップロード', 'login':'ログイン', 'register':'登録', 'logout':'ログアウト', 'language':'言語',
+      'sortBy':'並び替え','uploadDate':'アップロード日','uploader':'投稿者','robotName':'機体名','about':'詳細',
+      'howUploadTitle':'アップロード方法','howImportTitle':'ゲームへのインポート方法','botDetails':'Bot詳細','username':'アカウント名','password':'パスワード',
+      'uploadBot':'Botをアップロード','description':'機体説明','botFile':'Botファイル','thumbnail':'サムネイル','previewImages':'プレビュー画像','cancel':'キャンセル',
+      'thumbnailHelp':'サイトのサムネイルと同じ216:116の比率になるように切り抜いてください。保存時に1MB以内になるよう自動調整されます。',
+      'cropHelp':'画像をドラッグして切り抜き位置を調整できます。マウスホイールで拡大・縮小できます。','thumbPreview':'サムネイルプレビュー','noPreview':'プレビュー画像は選択されていません。',
+      'optional':'任意。Bot Detailsページに表示するプレビュー画像を複数添付できます。','downloadBot':'Botをダウンロード','deleteBot':'Botを削除','player':'プレイヤー','uploaded':'アップロード日',
+      'previewGallery':'プレビュー画像','importInfo':'インポート情報','copy':'コピー','saveImport':'この1行を保存し、templatesフォルダのindex.fileに追記してください。','noDescription':'説明なし',
+      'uploadSteps':['登録またはログインする。','アップロードボタンを押す。','必要事項を入力する。','サムネイル画像とボットデータをアップロードする。','プレビュー用の画像をアップロードする。'],
+      'importSteps':['このページでインポートしたい機体のAboutボタンをクリックしてDownloadを選択し、表示された文字列を保存する。','ダウンロードしたファイルをtemplatesフォルダに配置する。','Downloadで表示された文字列をtemplatesフォルダにあるindex.fileへ追記する。','ガレージにてPrefabsを選択後、ガレージスロットを一番右端まで移動すると追加したボットがある。']
     }
-    const btn = document.getElementById('languageBtn');
-    if (btn) btn.textContent = lang === 'ja' ? 'Language: 日本語' : 'Language';
-    window.__cfLanguage = lang;
+  };
+  function initialLanguage() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved === 'en' || saved === 'ja') return saved;
+    const serverHint = document.documentElement.dataset.country;
+    if (serverHint && serverHint.toUpperCase() === 'JP') return 'ja';
+    return (navigator.language || '').toLowerCase().startsWith('ja') ? 'ja' : 'en';
   }
-
-  function getInitial() {
-    const saved = localStorage.getItem(KEY);
-    if (saved === 'ja' || saved === 'en') return saved;
-    return INITIAL === 'ja' ? 'ja' : 'en';
+  let current = initialLanguage();
+  window.t = key => translations[current][key] ?? translations.en[key] ?? key;
+  window.getLanguage = () => current;
+  window.setLanguage = lang => {
+    if (!translations[lang]) return;
+    current = lang; localStorage.setItem(STORAGE_KEY, lang); document.documentElement.lang = lang === 'ja' ? 'ja' : 'en';
+    applyStatic(); document.dispatchEvent(new CustomEvent('languagechange', {detail:{lang}}));
+  };
+  function text(id,key){ const el=document.getElementById(id); if(el) el.textContent=t(key); }
+  function applyStatic(){
+    text('howToUploadBtn','howUpload'); text('howToImportBtn','howImport'); text('uploadBtn','upload'); text('loginBtn','login'); text('registerBtn','register'); text('logoutBtn','logout'); text('languageBtn','language');
+    text('sortLabel','sortBy'); text('sortUploadDate','uploadDate'); text('sortUploader','uploader'); text('sortRobotName','robotName');
+    text('howToUploadTitle','howUploadTitle'); text('howToImportTitle','howImportTitle'); text('authUsernameLabel','username'); text('authPasswordLabel','password'); text('uploadModalTitle','uploadBot');
+    text('robotNameLabel','robotName'); text('descriptionLabel','description'); text('botFileLabel','botFile'); text('thumbnailLabel','thumbnail'); text('previewImagesLabel','previewImages');
+    text('cancelUploadBtn','cancel'); text('cropHelp','cropHelp'); text('thumbPreviewLabel','thumbPreview'); text('detailTitle','botDetails'); text('previewGalleryTitle','previewGallery'); text('importInfoTitle','importInfo'); text('copyImportInfo','copy'); text('importInfoHelp','saveImport');
+    const upList=document.getElementById('howUploadList'); if(upList){upList.innerHTML=''; t('uploadSteps').forEach((s,i)=>{const li=document.createElement('li');li.innerHTML=`<strong>${s}</strong>${i===3?`<div class="help">First, export your bot from the game as a <code>.bot</code> file. In the Garage, select <strong>Prefabs → Local Export</strong>, then select the bot you want to export. After exporting, check the <code>templates</code> folder:</div><code>C:\Users\%user%\AppData\LocalLow\Ironshell Studios\Procelio\templates</code>`:i===4?` <span class="help">(${t('optional')})</span>`:''}`;upList.appendChild(li)});}
+    const impList=document.getElementById('howToImportList'); if(impList){impList.innerHTML=''; t('importSteps').forEach((s,i)=>{const li=document.createElement('li');li.innerHTML=`<strong>${s}</strong>${i===1?`<div class="help"><code>C:\Users\%user%\AppData\LocalLow\Ironshell Studios\Procelio\templates</code></div>`:''}`;impList.appendChild(li)});}
+    const opt=document.getElementById('previewOptional'); if(opt) opt.textContent=t('optional');
   }
-
-  function setLanguage(lang, save = true) {
-    if (lang !== 'ja' && lang !== 'en') return;
-    if (save) localStorage.setItem(KEY, lang);
-    apply(lang);
-  }
-
-  window.setLanguage = setLanguage;
-  window.getLanguage = () => window.__cfLanguage || getInitial();
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const initial = getInitial();
-    apply(initial);
-    const btn = document.getElementById('languageBtn');
-    if (btn) btn.onclick = () => setLanguage(getInitial() === 'en' ? 'ja' : 'en');
-    const observer = new MutationObserver(() => {
-      if (window.__cfLanguage === 'ja') apply('ja');
-    });
-    observer.observe(document.body, {childList:true, subtree:true});
-  });
+  document.addEventListener('DOMContentLoaded', applyStatic);
 })();

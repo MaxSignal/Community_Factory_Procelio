@@ -19,6 +19,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::PayloadConfig::new(32 * 1024 * 1024))
             .service(robocraft::web_ui::index)
             .service(robocraft::web_ui::app_js)
+            .service(robocraft::web_ui::i18n_js)
             .service(robocraft::web_ui::favicon)
             .service(robocraft::auth_api::register)
             .service(robocraft::auth_api::login)
