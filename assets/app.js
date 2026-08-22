@@ -57,7 +57,6 @@ $('#howToImportBtn').onclick=()=>modal('#howToImportModal');
 $('#loginBtn').onclick=()=>showAuth('login');$('#registerBtn').onclick=()=>showAuth('register');$('#logoutBtn').onclick=async()=>{await api('/api/auth/logout',{method:'POST'});await refreshMe()};
 $('#authForm').onsubmit=async e=>{e.preventDefault();$('#authError').textContent='';try{await api(authMode==='login'?'/api/auth/login':'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('#authUsername').value,password:$('#authPassword').value})});if(authMode==='register'){alert('Registration complete. Please log in.');showAuth('login')}else{modal('#authModal',false);await refreshMe()}}catch(err){$('#authError').textContent=err.message}};
 
-$('#languageBtn').onclick=()=>{if(typeof getLanguage!=='function'||typeof setLanguage!=='function') return;const next=getLanguage()==='en'?'ja':'en';setLanguage(next);};
 arrangeAuthButtons();
 
 $('#uploadBtn').onclick=()=>{
