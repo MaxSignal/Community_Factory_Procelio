@@ -53,16 +53,19 @@ async function refreshMe(){
   $('#userPill').textContent=loggedIn?`${t('signedInAs')} ${loggedIn}${isAdmin?` (${t('admin')})`:''}`:'';
   $('#loginBtn').classList.toggle('hidden',!!loggedIn);$('#registerBtn').classList.toggle('hidden',!!loggedIn);$('#logoutBtn').classList.toggle('hidden',!loggedIn);
   arrangeAuthButtons();
+  const reportListLink=$('#reportListLink'); if(reportListLink) reportListLink.classList.toggle('hidden',!isAdmin);
   syncMobileHeader();
 }
 
+function syncReportFooter(){ const link=$('#reportListLink'); if(link) link.classList.toggle('hidden',!isAdmin); }
+
 function updateDynamicLanguage(){
-  if(!loggedIn) $('#userPill').textContent=''; else $('#userPill').textContent=isAdmin?`Signed in as ${loggedIn} (Admin)`:`Signed in as ${loggedIn}`;
+  if(!loggedIn) $('#userPill').textContent=''; else $('#userPill').textContent=isAdmin?`${t('signedInAs')} ${loggedIn} (${t('admin')})`:`${t('signedInAs')} ${loggedIn}`;
   $('#robotCount').textContent=`${robotsCache.length} ${robotsCache.length===1?t('bot'):t('bots')}`;
   $('#sortDirection').title=sortDesc?t('descending'):t('ascending');
   if($('#detailBody').querySelector('.detail')){ const d=$('#detailBody').querySelector('.date'); if(d){ const m=d.textContent.match(/: (.*)$/); d.textContent=`${t('uploaded')}: ${m?m[1]:d.textContent}`; } }
 }
-document.addEventListener('languagechange',()=>{updateDynamicLanguage();syncMobileHeader();renderRobots(); if($('#uploadModal').classList.contains('show')) $('#previewFileList').textContent=$('#previewFiles').files.length?$('#previewFileList').textContent:t('noPreview');});
+document.addEventListener('languagechange',()=>{updateDynamicLanguage();syncReportFooter();syncMobileHeader();renderRobots(); if($('#uploadModal').classList.contains('show')) $('#previewFileList').textContent=$('#previewFiles').files.length?$('#previewFileList').textContent:t('noPreview');});
 
 function sortRobots(robots){return [...robots].sort((a,b)=>{let av=a[sortKey],bv=b[sortKey];if(sortKey==='created_at'){av=Number(av)||0;bv=Number(bv)||0}else{av=String(av??'').toLocaleLowerCase();bv=String(bv??'').toLocaleLowerCase()}if(av<bv)return sortDesc?1:-1;if(av>bv)return sortDesc?-1:1;return 0})}
 function renderRobots(){
@@ -72,6 +75,30 @@ function renderRobots(){
 }
 async function loadRobots(){const r=await api('/api/robots');const data=await r.json();robotsCache=data.robots||[];renderRobots()}
 $('#sortSelect').onchange=e=>{sortKey=e.target.value;renderRobots()};$('#sortDirection').onclick=()=>{sortDesc=!sortDesc;renderRobots()};
+
+async function loadReports(){
+  const r=await api('/api/reports');
+  const data=await r.json();
+  const list=$('#reportList');
+  if(!list)return;
+  list.innerHTML='';
+  const reports=data.reports||[];
+  if(!reports.length){list.innerHTML=`<div class="help">${esc(t('noReports'))}</div>`;return}
+  for(const report of reports){
+    const item=document.createElement('div'); item.className='report-item';
+    const who=report.username?`${t('reportedBy')}: ${report.username}`:`${t('reportedBy')}: anonymous`;
+    item.innerHTML=`<div class="report-meta">${esc(formatDate(report.created_at))} · ${esc(who)}</div><div class="report-message">${esc(report.message)}</div>${report.contact?`<div class="report-contact">${esc(t('reportContactLabel'))}: ${esc(report.contact)}</div>`:''}<div class="report-actions"><button class="danger report-delete" data-id="${esc(report.id)}">${esc(t('deleteReport'))}</button></div>`;
+    item.querySelector('.report-delete').onclick=async()=>{
+      if(!confirm(t('deleteReportConfirm')))return;
+      try{await api('/api/reports/'+encodeURIComponent(report.id),{method:'DELETE'});await loadReports();}
+      catch(err){$('#reportListError').textContent=err.message;}
+    };
+    list.appendChild(item);
+  }
+}
+$('#reportProblemLink').onclick=()=>{modal('#reportModal');$('#reportError').textContent='';};
+$('#reportListLink').onclick=async()=>{if(!isAdmin)return;$('#reportListError').textContent='';modal('#reportListModal');try{await loadReports()}catch(err){$('#reportListError').textContent=err.message;}};
+$('#reportForm').onsubmit=async e=>{e.preventDefault();$('#reportError').textContent='';try{await api('/api/reports',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:$('#reportMessage').value,contact:$('#reportContact').value})});$('#reportForm').reset();modal('#reportModal',false);alert(t('reportSent'));}catch(err){$('#reportError').textContent=err.message||t('reportError')}};
 
 function showAuth(mode){authMode=mode;$('#authTitle').textContent=mode==='login'?t('login'):t('register');$('#authSubmit').textContent=mode==='login'?t('login'):t('register');$('#authError').textContent='';$('#authForm').reset();modal('#authModal')}
 $('#howToUploadBtn').onclick=()=>{ if(typeof window.renderHowToI18n==='function') window.renderHowToI18n(); modal('#howToUploadModal'); };

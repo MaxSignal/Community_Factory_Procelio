@@ -32,6 +32,17 @@ pub struct User {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Report {
+    pub id: String,
+    pub message: String,
+    pub contact: String,
+    #[serde(default)]
+    pub username: Option<String>,
+    pub created_at: u64,
+}
+
 pub struct Robot {
     pub id: String,
     pub name: String,
@@ -67,6 +78,7 @@ pub struct Storage {
     users_file: PathBuf,
     robots_file: PathBuf,
     index_file: PathBuf,
+    reports_file: PathBuf,
 }
 
 impl Storage {
@@ -78,10 +90,12 @@ impl Storage {
         let users_file = root.join("users.json");
         let robots_file = root.join("robots.json");
         let index_file = root.join("index.file");
+        let reports_file = root.join("reports.json");
         if !users_file.exists() { fs::write(&users_file, "[]")?; }
         if !robots_file.exists() { fs::write(&robots_file, "[]")?; }
         if !index_file.exists() { fs::write(&index_file, b"")?; }
-        Ok(Self { root, users_file, robots_file, index_file })
+        if !reports_file.exists() { fs::write(&reports_file, "[]")?; }
+        Ok(Self { root, users_file, robots_file, index_file, reports_file })
     }
 
     fn read_users(&self) -> Result<Vec<User>, AppError> {
@@ -102,6 +116,37 @@ impl Storage {
     fn write_robots(&self, robots: &[Robot]) -> Result<(), AppError> {
         fs::write(&self.robots_file, serde_json::to_vec_pretty(robots)?)?;
         Ok(())
+    }
+
+    fn read_reports(&self) -> Result<Vec<Report>, AppError> {
+        Ok(serde_json::from_slice(&fs::read(&self.reports_file)?)?)
+    }
+    fn write_reports(&self, reports: &[Report]) -> Result<(), AppError> {
+        fs::write(&self.reports_file, serde_json::to_vec_pretty(reports)?)?;
+        Ok(())
+    }
+    pub fn add_report(&self, message: &str, contact: &str, username: Option<String>) -> Result<Report, AppError> {
+        let message = message.trim();
+        let contact = contact.trim();
+        if message.is_empty() { return Err(AppError::Invalid("Report message is required.".into())); }
+        if message.len() > 5000 { return Err(AppError::Invalid("Report message is too long.".into())); }
+        if contact.len() > 256 { return Err(AppError::Invalid("Contact information is too long.".into())); }
+        let report = Report { id: Uuid::new_v4().to_string(), message: message.to_owned(), contact: contact.to_owned(), username, created_at: now() };
+        let mut reports = self.read_reports()?;
+        reports.push(report.clone());
+        self.write_reports(&reports)?;
+        Ok(report)
+    }
+    pub fn reports(&self) -> Result<Vec<Report>, AppError> {
+        self.read_reports()
+    }
+    pub fn delete_report(&self, id: &str) -> Result<bool, AppError> {
+        let mut reports = self.read_reports()?;
+        let old_len = reports.len();
+        reports.retain(|r| r.id != id);
+        if reports.len() == old_len { return Ok(false); }
+        self.write_reports(&reports)?;
+        Ok(true)
     }
 
     pub fn register(&self, username: &str, password: &str) -> Result<(), AppError> {

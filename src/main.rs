@@ -33,6 +33,9 @@ async fn main() -> std::io::Result<()> {
             .service(robocraft::factory::crf_api::download)
             .service(robocraft::factory::crf_api::thumbnail)
             .service(robocraft::factory::crf_api::preview)
+            .service(robocraft::reports_api::create)
+            .service(robocraft::reports_api::list)
+            .service(robocraft::reports_api::delete)
     })
     .bind((cli_args.ip, cli_args.port))?
     .run()

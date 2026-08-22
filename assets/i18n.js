@@ -4,7 +4,7 @@
     en: {
       'brand': 'Procelio Community Factory (Unofficial)',
       'howUpload': 'How to upload', 'howImport':'How to import to game', 'upload':'Upload', 'login':'Login', 'register':'Register', 'logout':'Logout', 'language':'Language',
-      'sortBy':'Sort by','uploadDate':'Upload date','uploader':'Uploader','robotName':'Robot name','about':'About','ascending':'Ascending','descending':'Descending',
+      'reportProblem':'Report a problem','reportList':'Report list','reportTitle':'Report a problem','reportMessageLabel':'Problem report','reportContactLabel':'Contact (optional)','reportMessagePlaceholder':'Please describe the problem.','reportContactPlaceholder':'Twitter ID, Discord ID, email address, or anything else','sendReport':'Send report','reportSent':'Report submitted.','noReports':'No reports.','reportedBy':'Reported by','deleteReport':'Delete report','deleteReportConfirm':'Delete this report?','reportError':'Failed to submit the report.','reportListError':'Failed to load reports.', 'sortBy':'Sort by','uploadDate':'Upload date','uploader':'Uploader','robotName':'Robot name','about':'About','ascending':'Ascending','descending':'Descending',
       'howUploadTitle':'How to upload','howImportTitle':'How to import to game','botDetails':'Bot Details','username':'Username','password':'Password',
       'uploadBot':'Upload Bot','description':'Description','botFile':'Bot file','thumbnail':'Thumbnail','previewImages':'Preview images','cancel':'Cancel',
       'thumbnailHelp':'Crop to the same 216:116 ratio as the site thumbnail. The saved image is automatically adjusted to stay within 1 MB.',
@@ -19,7 +19,7 @@
     ja: {
       'brand': 'Procelio Community Factory (非公式)',
       'howUpload': 'アップロード方法', 'howImport':'ゲームへのインポート方法', 'upload':'アップロード', 'login':'ログイン', 'register':'登録', 'logout':'ログアウト', 'language':'言語',
-      'sortBy':'並び替え','uploadDate':'アップロード日','uploader':'投稿者','robotName':'機体名','about':'詳細','ascending':'昇順','descending':'降順',
+      'reportProblem':'問題を報告','reportList':'報告一覧','reportTitle':'問題を報告','reportMessageLabel':'問題の内容','reportContactLabel':'連絡先（任意）','reportMessagePlaceholder':'問題の内容を入力してください。','reportContactPlaceholder':'TwitterのID、DiscordのID、メールアドレス、その他なんでも','sendReport':'報告する','reportSent':'報告を送信しました。','noReports':'報告はありません。','reportedBy':'報告者','deleteReport':'報告を削除','deleteReportConfirm':'この報告を削除しますか？','reportError':'報告の送信に失敗しました。','reportListError':'報告一覧の取得に失敗しました。', 'sortBy':'並び替え','uploadDate':'アップロード日','uploader':'投稿者','robotName':'機体名','about':'詳細','ascending':'昇順','descending':'降順',
       'howUploadTitle':'アップロード方法','howImportTitle':'ゲームへのインポート方法','botDetails':'Bot詳細','username':'アカウント名','password':'パスワード',
       'uploadBot':'Botをアップロード','description':'機体説明','botFile':'Botファイル','thumbnail':'サムネイル','previewImages':'プレビュー画像','cancel':'キャンセル',
       'thumbnailHelp':'サイトのサムネイルと同じ216:116の比率になるように切り抜いてください。保存時に1MB以内になるよう自動調整されます。',
@@ -84,6 +84,7 @@
   function applyStatic(){
     text('howToUploadBtn','howUpload'); text('howToImportBtn','howImport'); text('uploadBtn','upload'); text('loginBtn','login'); text('registerBtn','register'); text('logoutBtn','logout'); text('languageBtn','language');
     text('sortLabel','sortBy'); text('sortUploadDate','uploadDate'); text('sortUploader','uploader'); text('sortRobotName','robotName');
+    text('reportProblemLink','reportProblem'); text('reportListLink','reportList'); text('reportTitle','reportTitle'); text('reportMessageLabel','reportMessageLabel'); text('reportContactLabel','reportContactLabel'); text('submitReportBtn','sendReport'); text('reportListTitle','reportList'); text('cancelReportBtn','cancel'); const rm=document.getElementById('reportMessage'); if(rm) rm.placeholder=t('reportMessagePlaceholder'); const rc=document.getElementById('reportContact'); if(rc) rc.placeholder=t('reportContactPlaceholder');
     text('howToUploadTitle','howUploadTitle'); text('howToImportTitle','howImportTitle'); text('shareTitle','shareTitle'); text('shareHelp','shareHelp'); text('shareCopy','copy'); text('authUsernameLabel','username'); text('authPasswordLabel','password'); text('uploadModalTitle','uploadBot');
     text('robotNameLabel','robotName'); text('descriptionLabel','description'); text('botFileLabel','botFile'); text('thumbnailLabel','thumbnail'); text('previewImagesLabel','previewImages');
     text('cancelUploadBtn','cancel'); text('cropHelp','cropHelp'); text('thumbPreviewLabel','thumbPreview'); text('detailTitle','botDetails'); text('previewGalleryTitle','previewGallery'); text('importInfoTitle','importInfo'); text('copyImportInfo','copy'); text('importInfoHelp','saveImport');
