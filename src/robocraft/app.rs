@@ -32,8 +32,6 @@ pub struct User {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Report {
     pub id: String,
     pub message: String,
@@ -43,6 +41,7 @@ pub struct Report {
     pub created_at: u64,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Robot {
     pub id: String,
     pub name: String,
