@@ -72,15 +72,28 @@ async function showDetail(id){
   $('#detailDownload').onclick=async()=>{
     $('#importInfoText').value='';
     $('#importInfoError').textContent='';
-    $('#downloadBotConfirm').onclick=null;
-    modal('#downloadInfoModal');
     try {
       const info=await api('/api/robots/'+encodeURIComponent(b.id)+'/import-info');
       const data=await info.json();
+      if (!info.ok) throw new Error(data.error || 'Failed to get import information.');
       $('#importInfoText').value=data.import_line;
-      $('#downloadBotConfirm').onclick=()=>{ location.href=b.download_url; };
+
+      const response=await fetch(b.download_url);
+      if (!response.ok) throw new Error('Failed to download the bot file.');
+      const blob=await response.blob();
+      const url=URL.createObjectURL(blob);
+      const link=document.createElement('a');
+      link.href=url;
+      link.download=b.name.replace(/[^a-zA-Z0-9._-]+/g,'_')+'.bot';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+
+      modal('#downloadInfoModal');
     } catch(err) {
       $('#importInfoError').textContent=err.message;
+      modal('#downloadInfoModal');
     }
   };
   $('#copyImportInfo').onclick=async()=>{
