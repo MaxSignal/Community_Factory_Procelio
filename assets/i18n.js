@@ -54,5 +54,6 @@
     const impList=document.getElementById('howToImportList'); if(impList){impList.innerHTML=''; t('importSteps').forEach((s,i)=>{const li=document.createElement('li');li.innerHTML=`<strong>${s}</strong>${i===1?`<div class="help"><code>C:\Users\%user%\AppData\LocalLow\Ironshell Studios\Procelio\templates</code></div>`:''}`;impList.appendChild(li)});}
     const opt=document.getElementById('previewOptional'); if(opt) opt.textContent=t('optional');
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', applyStatic); else applyStatic();
+  function bootI18n(){ applyStatic(); const btn=document.getElementById('languageBtn'); if(btn && !btn.dataset.i18nBound){ btn.dataset.i18nBound='1'; btn.addEventListener('click',()=>window.setLanguage(window.getLanguage()==='en'?'ja':'en')); } }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootI18n, {once:true}); else bootI18n();
 })();
