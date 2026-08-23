@@ -190,10 +190,13 @@ pub async fn upload(state: Data<AppState>, req: HttpRequest, mut payload: Multip
     let encoded_footer = BASE64.encode(&bot_info.footer);
     let expected_suffix = encoded_footer.replace('/', "#");
     let Some((account_id, supplied_suffix)) = bot_filename.strip_suffix(".bot").or_else(|| bot_filename.strip_suffix(".BOT")).and_then(|stem| stem.split_once('_')) else {
-        return HttpResponse::BadRequest().body("Invalid bot filename. Expected <19-digit-account-id>_<footer-base64>.bot.");
+        return HttpResponse::BadRequest().body("Invalid bot filename. Expected <account-id>_<footer-base64>.bot.");
     };
-    if account_id.len() != 19 || !account_id.bytes().all(|b| b.is_ascii_digit()) || account_id == "0000000000000000000" {
-        return HttpResponse::BadRequest().body("Invalid bot filename account ID. Expected a 19-digit numeric ID.");
+    if account_id.is_empty()
+        || account_id.len() > 128
+        || account_id.bytes().any(|b| !b.is_ascii_alphanumeric() && b != b'-' && b != b'.')
+    {
+        return HttpResponse::BadRequest().body("Invalid bot filename account ID.");
     }
     if supplied_suffix != expected_suffix {
         return HttpResponse::BadRequest().body("Invalid bot filename checksum suffix. The filename must contain the Base64 MD5 footer (with '/' replaced by '#').");
@@ -252,7 +255,7 @@ pub async fn download(state: Data<AppState>, id: Path<String>) -> HttpResponse {
     let Ok(Some(robot)) = state.storage.robot(&id) else { return HttpResponse::NotFound().finish(); };
     match std::fs::read(state.storage.bot_path(&robot)) {
         Ok(bytes) => {
-            let filename = if robot.account_id.len() == 19 && robot.account_id.bytes().all(|b| b.is_ascii_digit()) && bytes.len() >= 16 {
+            let filename = if bytes.len() >= 16 {
                 let footer = &bytes[bytes.len() - 16..];
                 format!("{}_{}.bot", robot.account_id, BASE64.encode(footer).replace('/', "#"))
             } else {

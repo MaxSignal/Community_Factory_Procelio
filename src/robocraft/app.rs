@@ -210,9 +210,7 @@ impl Storage {
             if raw.is_empty() { continue; }
             let mut fields: Vec<&str> = raw.split(',').collect();
             if fields.len() < 5 { continue; }
-            let decoded_name = STANDARD.decode(fields[1]).ok().and_then(|v| String::from_utf8(v).ok());
-            if decoded_name.as_deref() == Some(bot_name) {
-                fields[0] = &encoded_filename;
+            if fields[0] == encoded_filename {
                 fields[4] = &encoded_footer;
                 found = true;
             }
@@ -264,10 +262,13 @@ impl Storage {
             return Err(AppError::Invalid("You can only delete your own bots.".into()));
         }
         let robot = robots.remove(index);
-        let _ = fs::remove_file(self.bot_path(&robot));
+        let shared_bot_still_used = robots.iter().any(|r| r.bot_file_name == robot.bot_file_name);
+        if !shared_bot_still_used {
+            let _ = fs::remove_file(self.bot_path(&robot));
+            self.remove_index_entry(&robot.bot_file_name)?;
+        }
         let _ = fs::remove_file(self.thumb_path(&robot));
         let _ = fs::remove_dir_all(self.root.join("previews").join(&robot.id));
-        self.remove_index_entry(&robot.bot_file_name)?;
         self.write_robots(&robots)?;
         Ok(true)
     }
