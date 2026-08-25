@@ -6,6 +6,7 @@ const RATIO=216/116;
 let robotsCache=[]; let sortKey='created_at'; let sortDesc=true;
 let detailPreviews=[]; let detailPreviewIndex=0;
 let lightboxOpen=false;
+let lastAutoBotName='';
 
 function modal(id,open=true){$(id).classList.toggle('show',open)}
 function openLightbox(src,alt='Preview image'){const el=$('#imageLightbox');$('#imageLightboxImage').src=src;$('#imageLightboxImage').alt=alt;el.classList.add('show');el.setAttribute('aria-hidden','false');lightboxOpen=true}
@@ -113,6 +114,27 @@ syncMobileHeader();
 $('#uploadBtn').onclick=()=>{
   if(!loggedIn){alert(t('uploadLoginRequired'));return}
   $('#uploadError').textContent='';$('#uploadForm').reset();$('#cropPreview').src='';$('#previewFiles').value='';crop={image:null,scale:1,x:0,y:0,drag:false,lastX:0,lastY:0};$('#previewFileList').textContent=t('noPreview');resizeCanvas();modal('#uploadModal')
+};
+async function readBotName(file){
+  if(!file)return null;
+  const buf=await file.arrayBuffer();
+  const bytes=new Uint8Array(buf);
+  if(bytes.length<0x11)return null;
+  const nameLen=bytes[0x10];
+  const start=0x11,end=start+nameLen;
+  if(end>bytes.length)return null;
+  try{return new TextDecoder('utf-8',{fatal:true}).decode(bytes.slice(start,end));}catch{return null;}
+}
+$('#botFile').onchange=async e=>{
+  const f=e.target.files[0];
+  if(!f)return;
+  try{
+    const botName=await readBotName(f);
+    if(botName && (!$('#robotName').value || $('#robotName').value===lastAutoBotName)) {
+      $('#robotName').value=botName;
+      lastAutoBotName=botName;
+    }
+  }catch{}
 };
 $('#thumbFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const img=new Image();img.onload=async()=>{crop.image=img;crop.scale=Math.max(1,Math.max(216/img.width,116/img.height));crop.x=(216-img.width*crop.scale)/2;crop.y=(116-img.height*crop.scale)/2;resizeCanvas();drawCrop();await updatePreview()};img.src=URL.createObjectURL(f)};
 $('#previewFiles').onchange=e=>{const files=[...e.target.files];$('#previewFileList').textContent=files.length?files.map((f,i)=>`${i+1}. ${f.name}`).join('\n'):t('noPreview')};
